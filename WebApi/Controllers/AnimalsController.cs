@@ -3,6 +3,7 @@ using DataAccess.Enums;
 using DataAccess.Repositories;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using WebApi.Extensions;
 
 namespace WebApi.Controllers
 {
@@ -19,25 +20,45 @@ namespace WebApi.Controllers
             _repository = repository;
         }
 
-        [HttpGet]
-        public async Task<IEnumerable<AnimalDto>> GetAnimals(AnimalProperty orderProp)
+        [HttpGet("FindIdByName")]
+        public async Task<ActionResult<int>> FindIdByName(string name)
         {
-            var data = await _repository.GetAnimals(orderProp);
-            return data;
+            var result = await _repository.GetIdByName(name);
+
+            return result != null ? Ok(result) : NotFound();
         }
 
-        [HttpPost]
-        public async Task<OkResult> AddAnimal([FromBody] AnimalDto dto)
+        [HttpGet("GetAnimals")]
+        public async Task<ActionResult<IEnumerable<AnimalDto>>> GetAnimals(AnimalProperty? orderProp)
         {
-            await _repository.AddAnimal(dto);
-            return Ok();
+            var result = await _repository.GetAnimals(orderProp);
+            
+            return result.Any() ? Ok(result) : NoContent();
         }
 
-        [HttpPut]
-        public async Task<OkResult> AddAnimal(int id, [FromBody] AnimalDto dto)
+        [HttpPost("AddAnimal")]
+        public async Task<IActionResult> AddAnimal([FromBody] AnimalDto dto)
         {
-            await _repository.AddAnimal(dto);
-            return Ok();
+            var result = await _repository.AddAnimal(dto);
+            return result ? Ok(dto) : BadRequest(dto);
+        }
+
+        [HttpPut("UpdateAnimal")]
+        public async Task<IActionResult> UpdateAnimal(int id, [FromBody] AnimalDto dto)
+        {
+            var result = await _repository.UpdateAnimal(id, dto);
+            return result switch { 
+                true => Ok(),
+                false => this.NotModified("Not modified"),
+                _ => NotFound()
+            };
+        }
+
+        [HttpDelete("DeleteAnimal")]
+        public async Task<IActionResult> DeleteAnimal(int id)
+        {
+            var result = await _repository.DeleteAnimal(id);
+            return  result ? Ok() : NotFound();
         }
     }
 }

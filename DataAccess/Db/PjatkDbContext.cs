@@ -7,6 +7,6 @@ namespace DataAccess.Db
     {
         public PjatkDbContext(DbContextOptions<PjatkDbContext> options) : base(options) { }
 
-        public DbSet<Animal> Animals { get; set; }
+        public virtual DbSet<Animal> Animals { get; set; }
     }
 }
